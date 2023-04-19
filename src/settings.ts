@@ -74,7 +74,7 @@ export class ANFSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Excluded folders")
 			.setDesc(
-				"The notes under these folders will not reformat auto format the attachment name"
+				"这个文件夹下的笔记和附件都不会被重命名"
 			)
 			.addExtraButton((extraButton) => {
 				extraButton.onClick(() => {

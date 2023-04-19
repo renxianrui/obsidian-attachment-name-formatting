@@ -11,10 +11,10 @@ import {
 	TFolder,
 	EmbedCache,
 } from "obsidian";
-import { ANFSettings } from "./types";
-import { DEFAULT_SETTINGS, extensions } from "./constants";
-import { ANFSettingTab, ribbons } from "./settings";
-import { FolderScanModal, FolderRenameWarningModal } from "./modals";
+import {ANFSettings} from "./types";
+import {DEFAULT_SETTINGS, extensions} from "./constants";
+import {ANFSettingTab, ribbons} from "./settings";
+import {FolderScanModal, FolderRenameWarningModal} from "./modals";
 
 const fs = require("fs");
 const JSZip = require("jszip");
@@ -289,11 +289,29 @@ export default class AttachmentNameFormatting extends Plugin {
 				for (const attachmentFile of attachmentFiles) {
 					// Check if it exists and is of the correct type
 					if (attachmentFile instanceof TFile) {
+						let parentFolder = attachmentFile.parent;
+						let excluded = false;
+						// 当文件在白名单文件夹中时，不再重命名文件
+						while (parentFolder.path !== "/") {
+							if (
+								!this.settings.excludedFolders.includes(
+									parentFolder.path
+								)
+							) {
+								parentFolder = parentFolder.parent;
+							} else {
+								excluded = true;
+								break;
+							}
+						}
+						if (excluded) {
+							continue;
+						}
 						// Create the new full name with path
 						const parent_path = attachmentFile.path.substring(
 							0,
 							attachmentFile.path.length -
-								attachmentFile.name.length
+							attachmentFile.name.length
 						);
 						const newName =
 							[
@@ -317,7 +335,7 @@ export default class AttachmentNameFormatting extends Plugin {
 								destinationFile.path.substring(
 									0,
 									destinationFile.path.length -
-										destinationFile.name.length
+									destinationFile.name.length
 								);
 							const tmpName =
 								"tmp" + Date.now() + "_" + destinationFile.name;
@@ -326,11 +344,11 @@ export default class AttachmentNameFormatting extends Plugin {
 							);
 							console.log(
 								'Rename attachment "' +
-									destinationFile.name +
-									'" to "' +
-									destinationFile_path +
-									tmpName +
-									'"'
+								destinationFile.name +
+								'" to "' +
+								destinationFile_path +
+								tmpName +
+								'"'
 							);
 							await this.app.fileManager.renameFile(
 								destinationFile,
@@ -343,10 +361,10 @@ export default class AttachmentNameFormatting extends Plugin {
 						);
 						console.log(
 							'Rename attachment "' +
-								attachmentFile.name +
-								'" to "' +
-								newName +
-								'"'
+							attachmentFile.name +
+							'" to "' +
+							newName +
+							'"'
 						);
 						await this.app.fileManager.renameFile(
 							attachmentFile,
@@ -389,8 +407,8 @@ export default class AttachmentNameFormatting extends Plugin {
 						const file_path = normalizePath(
 							// @ts-ignore
 							this.app.vault.adapter.basePath +
-								"\\" +
-								attachement.path
+							"\\" +
+							attachement.path
 						);
 						console.log("Get attachment", file_path);
 						// Get the attachment and write into JSZip instance
@@ -407,15 +425,15 @@ export default class AttachmentNameFormatting extends Plugin {
 
 			// Save zip file to the root folder
 			console.log("Saving attachemnts...");
-			zip.generateNodeStream({ type: "nodebuffer", streamFiles: true })
+			zip.generateNodeStream({type: "nodebuffer", streamFiles: true})
 				.pipe(
 					fs.createWriteStream(
 						normalizePath(
 							// @ts-ignore
 							this.app.vault.adapter.basePath +
-								"/" +
-								file.basename +
-								"_Attachments.zip"
+							"/" +
+							file.basename +
+							"_Attachments.zip"
 						)
 					)
 				)
@@ -482,8 +500,8 @@ export default class AttachmentNameFormatting extends Plugin {
 			const file_path = normalizePath(
 				// @ts-ignore
 				this.app.vault.adapter.basePath +
-					"\\" +
-					parseLinktext(file.path).path
+				"\\" +
+				parseLinktext(file.path).path
 			);
 			await FileSystemAdapter.readLocalFile(file_path).then((data) =>
 				zip.file(normalizePath(file.name), data)
@@ -492,13 +510,13 @@ export default class AttachmentNameFormatting extends Plugin {
 
 		// Save zip file to the root folder
 		console.log("Saving attachemnts...");
-		zip.generateNodeStream({ type: "nodebuffer", streamFiles: true })
+		zip.generateNodeStream({type: "nodebuffer", streamFiles: true})
 			.pipe(
 				fs.createWriteStream(
 					normalizePath(
 						// @ts-ignore
 						this.app.vault.adapter.basePath +
-							"/Unused_Attachments.zip"
+						"/Unused_Attachments.zip"
 					)
 				)
 			)
